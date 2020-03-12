@@ -1,5 +1,5 @@
 function mainFunction() {
-  var api_key = "RGAPI-20415ee5-1b21-4ac4-b7e5-1be170a6b2da"; //reset toutes les 24H !!!!!!!
+  var api_key = "RGAPI-ef983ba3-4474-4e98-8a22-997c7e7db8ae"; //reset toutes les 24H !!!!!!!
   
   var sheetTOP = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("top");
   var sheetJGL = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("jgl");
@@ -12,6 +12,7 @@ function mainFunction() {
   var pseudoMID = "eYa Pacou";
   var pseudoADC = "eYa Hydrale";
   var pseudoSUP = "eYa Hazen";
+  
   var champions = getChampions();
   
   //gestionPseudoEtPage(champions,api_key,sheetTOP,pseudoTOP);
@@ -86,6 +87,38 @@ function workTimelineData(data,playerID,playerIDOpp) {
   return data;
 }
 
+//inutile pour le moment
+function getPlayerPost(pseudo,matchData) {
+  for (var i = 0; i<matchData['participants'].length; i++) {
+    if(matchData['participants'][i].participantId == playerID) {
+      var lane = matchData['participants'][i].timeline.lane;
+      var role = matchData['participants'][i].timeline.role;
+    }
+  }
+  
+  if(lane == "BOTTOM" && role == "DUO_CARRY") {
+   var playerPoste = "ADC";
+  } else if(lane == "BOTTOM" && role == "DUO_SUPPORT") {
+    var playerPoste = "SUP";
+  } else if(lane == "TOP" && role == "SOLO") {
+    var playerPoste = "TOP"; 
+  } else if(lane == "MIDDLE" && role == "SOLO") {
+    var playerPoste = "MID";
+  } else if(lane == "JUNGLE" && role == "NONE") {
+    var playerPoste = "JGL";
+  }
+  
+  return playerPoste;
+}
+
+function colorTeam(teamId) {
+  if(teamId == 100) {
+    return "BLUE";
+  } else {
+    return "RED";
+  }
+}
+
 function workMatchData(pseudo,matchData,champions,matchId,api_key) {
   try {
     for (var i = 0; i<matchData['participantIdentities'].length; i++) {
@@ -96,7 +129,7 @@ function workMatchData(pseudo,matchData,champions,matchId,api_key) {
     
     for (var i = 0; i<matchData['participantIdentities'].length; i++) {
       if(matchData['participants'][i].participantId == playerID) {
-        var teamPlayer = matchData['participants'][i].teamId;
+        var teamPlayer = colorTeam(matchData['participants'][i].teamId);
         var winner = matchData['participants'][i]['stats'].win;
       }
     }
@@ -105,6 +138,10 @@ function workMatchData(pseudo,matchData,champions,matchId,api_key) {
       if(matchData['participants'][i].participantId == playerID) {
         var lane = matchData['participants'][i].timeline.lane;
         var championPick = getChampionName(champions,matchData['participants'][i].championId);
+        var visionScore = matchData['participants'][i].stats.visionScore;
+        var wardsKilled = matchData['participants'][i].stats.wardsKilled;
+        var visionWardsBoughtInGame = matchData['participants'][i].stats.visionWardsBoughtInGame;
+        var wardsPlaced = matchData['participants'][i].stats.wardsPlaced;
       }
     }
     
@@ -118,7 +155,7 @@ function workMatchData(pseudo,matchData,champions,matchId,api_key) {
     
     var dataTimeline = getTimeline(playerID,playerIDOpp,matchId,api_key);
     
-    var data = [teamPlayer,winner,lane,championPick,championPickOpp,dataTimeline];
+    var data = [teamPlayer,winner,lane,championPick,championPickOpp,dataTimeline,visionScore,wardsKilled,visionWardsBoughtInGame,wardsPlaced];
   } catch (e) {
     Logger.log(e);
   }
@@ -172,7 +209,7 @@ function getMatchData(pseudo,matchId,api_key,champions) {
 function writeSheet(sheet,data,matchListData,matchData) {
   try {
     //console.log([matchData[5]]);
-    sheet.appendRow([data.name,data.accountId,matchListData,matchData[0],matchData[1],matchData[2],matchData[3],matchData[4],matchData[5][0],matchData[5][1]]);
+    sheet.appendRow([data.name,data.accountId,matchListData,matchData[0],matchData[1],matchData[2],matchData[3],matchData[4],matchData[5][0],matchData[5][1],matchData[6],matchData[7],matchData[8],matchData[9]]);
   } catch(e) {
     Logger.log(e);
   }
